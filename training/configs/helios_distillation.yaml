@@ -1,0 +1,66 @@
+# training/configs/helios_distillation.yaml
+# HELIOS L3: Qwen3.5-4B teacher -> Gemma 3 1B headless student
+# Run on: ASUS ROG Strix Halo 395+ (128GB unified, ROCm gfx1151)
+# Precision: bfloat16 ONLY. float16 overflows on Gemma 3.
+
+experiment_name: helios_v0_distillation
+
+teacher:
+  model_id: Qwen/Qwen2.5-3B-Instruct        # placeholder until Qwen3.5-4B releases on HF
+  precision: bfloat16
+  task: CPT_then_SFT
+  domain: EV_powertrain
+
+student:
+  model_id: google/gemma-3-1b-it
+  precision: bfloat16
+  architecture: dense                         # confirmed: no MoE, no SSCR conflict
+  modification: remove_lm_head
+  custom_head:
+    type: Linear
+    in_dim: 1152                              # Gemma 3 1B hidden dim
+    out_dim: 14                               # ACTION_SCHEMA_DIM
+
+distillation:
+  method: knowledge_distillation_kl
+  temperature: 4.0
+  alpha: 0.7                                  # 0.7 KD loss + 0.3 task loss
+  batch_size: 4
+  gradient_accumulation_steps: 8
+  max_seq_len: 512
+  learning_rate: 2.0e-5
+  lr_scheduler: cosine
+  warmup_steps: 100
+  max_steps: 3000
+  save_steps: 500
+
+alignment:
+  method: DPO
+  beta: 0.1
+  dataset: data/processed/dpo_pairs.jsonl     # safe/unsafe action schema pairs
+  max_steps: 1000
+
+quantization:
+  method: AWQ
+  bits: 4
+  group_size: 128
+  target_device: cuda                         # RTX 4070 for quant step
+
+hardware:
+  primary: strix_halo_395plus
+  precision_flag: bfloat16
+  rocm_target: gfx1151
+  verify_cmd: "rocminfo | grep gfx"
+  expected_output: gfx1151
+  fallback: unsloth                           # if bfloat16 issues on ROCm
+
+latency_target:
+  inference_ms: 150
+  device: jetson_orin_nx
+  quantized: true
+
+paths:
+  teacher_checkpoint: models/l3/checkpoints/teacher/
+  student_checkpoint: models/l3/checkpoints/student/
+  quantized_output: models/l3/quantized/helios_awq_int4/
+  experiment_log: training/experiments/helios_v0/
