@@ -1,7 +1,8 @@
 # HCR-EV: Hierarchical Control and Reasoning for Electric Vehicles
 
 > A 4-layer edge AI pipeline for real-time EV powertrain control.
-> Core thesis contribution: Sparse Sequential Conditional Routing (SSCR).
+> Core contribution: Sparse Sequential Conditional Routing (SSCR).
+> Status: design stage. The architecture and model selection are done; the code is in progress (see [Current State](#current-state-implemented)).
 
 ---
 
@@ -14,7 +15,7 @@ deployment. The work demonstrates:
 - System architecture design under hard latency and safety constraints (ISO 26262)
 - Domain-specific model selection rationale with documented rejection trails
 - Closed-loop synthetic simulation as a validation substitute for real hardware
-- A novel routing mechanism (SSCR) as the thesis contribution
+- A new routing mechanism (SSCR) as the core contribution
 
 ---
 
@@ -100,7 +101,6 @@ with sub-200ms end-to-end latency on Jetson Orin NX-class hardware.
 ### Phase 4 -- Documentation + Publication (Weeks 19-24)
 - arXiv preprint: SSCR contribution + architecture
 - Industry-scoped proposal (withhold full HELIOS integration details)
-- OvGU thesis submission draft
 
 ---
 
@@ -147,13 +147,13 @@ not dead code -- it is the decision trail that justifies the final architecture.
 
 Rejection log (summary):
 - Nemotron 3 Nano 31.6B: server-class only (H200/A100), not edge-deployable
-- Nemotron 3 Nano 4B: MoE backbone conflicts with SSCR thesis contribution
+- Nemotron 3 Nano 4B: MoE backbone conflicts with the SSCR contribution
 - Qwen3.5-4B MoE: same MoE conflict
 - Qwen3.5-2B dense: marginal reasoning for action schema output
 
 ---
 
-## Key Thesis Contribution
+## Key Contribution
 
 **Sparse Sequential Conditional Routing (SSCR):** A routing mechanism distinct
 from standard MoE gating. Applied at L2 to L3 handoff. The complexity budget
